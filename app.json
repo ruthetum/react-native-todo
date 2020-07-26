@@ -1,6 +1,7 @@
 {
   "expo": {
-    "name": "react-native-todo",
+    "name": "todo",
+    "description": "React Native 활용, To do 앱 만들기 with Nomad Coders",
     "slug": "react-native-todo",
     "version": "1.0.0",
     "orientation": "portrait",
