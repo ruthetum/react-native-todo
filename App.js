@@ -7,7 +7,8 @@ import {
   TextInput, 
   Dimensions, 
   Platform, 
-  ScrollView, 
+  ScrollView,
+  AsyncStorage, 
 } from 'react-native';
 import { AppLoading } from "expo";
 import ToDo from "./ToDo";
@@ -15,7 +16,6 @@ import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 
 const { height, width } = Dimensions.get("window");
-let idForToDo = 0;
 
 export default class App extends React.Component {
   state = {
@@ -49,16 +49,18 @@ export default class App extends React.Component {
             onSubmitEditing={this._addToDo}
           />
           <ScrollView contentContainerStyle={styles.toDos}>
-            {Object.values(toDos).map(toDo =>
-              <ToDo
-                key={toDo.id}
-                deleteToDo={this._deleteToDo}
-                uncompleteToDo={this._uncompleteToDo}
-                completeToDo={this._completeToDo}
-                updateToDo={this._updateToDo}
-                {...toDo}
-              />
-            )}
+            {Object.values(toDos)
+              .reverse()
+              .map(toDo =>
+                <ToDo
+                  key={toDo.id}
+                  deleteToDo={this._deleteToDo}
+                  uncompleteToDo={this._uncompleteToDo}
+                  completeToDo={this._completeToDo}
+                  updateToDo={this._updateToDo}
+                  {...toDo}
+                />)
+            }
           </ScrollView>
         </View>
       </View>
@@ -69,17 +71,21 @@ export default class App extends React.Component {
       newToDo: text
     })
   };
-  _loadToDos = () => {
-    this.setState({
-      loadedToDos: true
-    })
+  _loadToDos = async () => {
+    try {
+      const toDos = await AsyncStorage.getItem("toDos");
+      const parsedToDos = JSON.parse(toDos);
+      this.setState({ loadedToDos: true, toDos: parsedToDos || {} });
+    } catch (err) {
+      console.log(err);
+    }
   };
   _addToDo = () => {
     const { newToDo } = this.state;
     if (newToDo !== "") {
       this.setState(prevState => {
         // uuid 쓰면 getRandomValue error 발생해서 일단 상수값
-        const ID = String("1-") + String(idForToDo++);
+        const ID = String(Date.now()) + String(Math.floor(Math.random()*10));
         const newToDoObject = {
           [ID]: {
             id: ID,
@@ -96,6 +102,7 @@ export default class App extends React.Component {
             ...newToDoObject
           }
         };
+        this._saveToDos(newState.toDos);
         return { ...newState };
       });
     }
@@ -108,6 +115,7 @@ export default class App extends React.Component {
         ...prevState,
         ...toDos
       };
+      this._saveToDos(newState.toDos);
       return {...newState};
     });
   };
@@ -123,6 +131,7 @@ export default class App extends React.Component {
           }
         }
       };
+      this._saveToDos(newState.toDos);
       return {...newState};
     });
   };
@@ -138,6 +147,7 @@ export default class App extends React.Component {
           }
         }
       };
+      this._saveToDos(newState.toDos);
       return {...newState};
     });
   };
@@ -153,9 +163,13 @@ export default class App extends React.Component {
           }
         }
       };
+      this._saveToDos(newState.toDos);
       return {...newState};
     });
   };
+  _saveToDos = (newToDos) => {
+    const saveToDos = AsyncStorage.setItem("toDos", JSON.stringify(newToDos));
+  }
 }
 
 const styles = StyleSheet.create({
