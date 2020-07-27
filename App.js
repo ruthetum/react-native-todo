@@ -12,14 +12,16 @@ import {
 import { AppLoading } from "expo";
 import ToDo from "./ToDo";
 import 'react-native-get-random-values';
-import { v1 as uuidv1 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 const { height, width } = Dimensions.get("window");
+let idForToDo = 0;
 
 export default class App extends React.Component {
   state = {
     newToDo: "",
-    loadedToDos: false
+    loadedToDos: false,
+    toDos:{}
   };
 
   componentDidMount = () => {
@@ -27,7 +29,7 @@ export default class App extends React.Component {
   }
 
   render() {
-    const { newToDo, loadedToDos } = this.state;
+    const { newToDo, loadedToDos, toDos } = this.state;
     if (!loadedToDos) {
       return <AppLoading />;
     }
@@ -47,7 +49,8 @@ export default class App extends React.Component {
             onSubmitEditing={this._addToDo}
           />
           <ScrollView contentContainerStyle={styles.toDos}>
-            <ToDo text={"Hello"}/>
+            {Object.values(toDos).map(toDo =>
+              <ToDo key={toDo.id} deleteToDo={this._deleteToDo} {...toDo}/>)}
           </ScrollView>
         </View>
       </View>
@@ -67,7 +70,8 @@ export default class App extends React.Component {
     const { newToDo } = this.state;
     if (newToDo !== "") {
       this.setState(prevState => {
-        const ID = uuidv1();
+        // uuid 쓰면 getRandomValue error 발생해서 일단 상수값
+        const ID = String("1-") + String(idForToDo++);
         const newToDoObject = {
           [ID]: {
             id: ID,
@@ -84,9 +88,20 @@ export default class App extends React.Component {
             ...newToDoObject
           }
         };
-        return {...newState};
+        return { ...newState };
       });
     }
+  };
+  _deleteToDo = id => {
+    this.setState(prevState => {
+      const toDos = prevState.toDos;
+      delete toDos[id];
+      const newState = {
+        ...prevState,
+        ...toDos
+      };
+      return {...newState};
+    });
   };
 }
 
