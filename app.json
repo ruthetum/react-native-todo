@@ -20,8 +20,8 @@
     "ios": {
       "supportsTablet": true
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
+    "android": {
+      "package": "com.heedong.todo"
     }
   }
 }

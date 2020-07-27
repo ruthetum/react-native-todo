@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
         }
       },
       android: {
-        elevation: 3
+        elevation: 10,
       }
     })
   },
